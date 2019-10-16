@@ -1,28 +1,34 @@
 module SpaceForce where
 
 import Graphics.Gloss
-import Data.Fixed (mod')
+import Graphics.Gloss.Interface.IO.Interact (Event)
 
 -- | Default for displaying window: Name Size Position
-defDisplay :: Display
-defDisplay = (InWindow "My Awesome Window" (1280, 720) (10, 10))
+displayMode :: Display
+displayMode = InWindow "SpaceForces Game" (1280, 720) (10, 10)
 
 -- | Default color for background
-defBackClr :: Color
-defBackClr = white
+backColor :: Color
+backColor = white
+
+simulationConst :: Int
+simulationConst = 120
 
 simpleDraw :: IO ()
-simpleDraw = display defDisplay defBackClr (Circle 80)
+simpleDraw = display displayMode backColor (Circle 80)
 
-myCircle :: Picture
-myCircle = Circle 80
+initialWorld :: world
+initialWorld = undefined
 
-motion :: Float -> Picture
-motion dt = translate ((dt `mod'` 1)*20) 0 myCircle
+updateWorld :: Float -> world -> world
+updateWorld = undefined
 
-simpleAnim :: IO ()
-simpleAnim = animate defDisplay defBackClr motion
+handleWorld :: Event -> world -> world
+handleWorld = undefined
+
+drawWorld :: world -> Picture
+drawWorld = undefined
 
 run :: IO ()
-run = simpleAnim
--- run = putStrLn "Hello world, Gloss!"
+run = play displayMode backColor simulationConst
+  initialWorld drawWorld handleWorld updateWorld
