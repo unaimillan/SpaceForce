@@ -2,18 +2,18 @@
 module SpaceForce.Map where
 
 import Graphics.Gloss
-import SpaceForce (displayMode)
 
 --for now
 type ICoords = (Integer, Integer)
 
 data Cell = Wall | Road | Base | Enterance
 
--- | Level type should have [Wave] and SpaceMap
--- data Level = Level Integer Integer SpaceMap
+type Width = Integer
+
+type Height = Integer
 
 -- | Level template, params: width, height, mappingFunction
-data SpaceMap = SpaceMap Integer Integer (ICoords -> Cell)
+data SpaceMap = SpaceMap Width Height (ICoords -> Cell)
 
 -- TODO check later also scale unit for drawing
 unit :: Float
@@ -52,4 +52,7 @@ drawRow (SpaceMap _ _ func) y = pictures (map (\x -> convert x) [1..12])
     convert x = translate (fromIntegral x * unit) 0 (drawCell (func (x, y)))
 
 displayLevel :: SpaceMap -> IO ()
-displayLevel func = display displayMode white (drawMap func)
+displayLevel func = display debugMode white (drawMap func)
+
+debugMode :: Display
+debugMode = InWindow "SpaceForces Game. Debug" (1280, 720) (10, 10)
