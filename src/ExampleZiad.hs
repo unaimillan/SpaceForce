@@ -1,3 +1,4 @@
+module ExampleZiad where
 -- Using the tutorial :
 -- https://mmhaskell.com/blog/2019/3/25/making-a-glossy-game-part-1
 
