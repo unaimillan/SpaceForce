@@ -1,8 +1,7 @@
 module SpaceForce where
 
 import Graphics.Gloss
-import SpaceForce.PlayGame (initialWorld, handleWorld, 
-  updateWorld, drawWorld)
+import SpaceForce.Game (initialWorld, handleWorld, updateWorld, drawWorld)
 
 -- | Default for displaying window: Name Size Position
 displayMode :: Display

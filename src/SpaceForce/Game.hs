@@ -1,13 +1,17 @@
-module SpaceForce.PlayGame where
+module SpaceForce.Game where
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Interact (Event)
-import SpaceForce.Level (Level, Enemy, Tower)
+import SpaceForce.Map (LevelMap)
+import SpaceForce.Level 
+  (BaseHealth, Movings, Enemy, Tower, CurrentTime, StartT)
 
-type BaseHealth = Float
-type GameTime = Float
-
-data GameState = GameState Level [Enemy] [Tower] BaseHealth GameTime
+data GameState = GameState 
+    LevelMap 
+    [Tower] 
+    BaseHealth
+    Movings 
+    CurrentTime [(StartT, Enemy)]
 
 initialWorld :: world
 initialWorld = undefined
