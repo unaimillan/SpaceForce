@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 module SpaceForce.Map where
-
+-- TODO: make this file to draw everything
+-- TODO: Factor our level description to another file
 import Graphics.Gloss
 
 --for now
@@ -21,6 +22,7 @@ data SpaceMap = SpaceMap Width Height (ICoords -> Cell)
 unit :: Float
 unit = 30.0
 
+-- TODO: rename to levelMap1 and have (level1 :: Level)
 level1 :: SpaceMap
 level1 = SpaceMap 12 11 mappingFunc
   where

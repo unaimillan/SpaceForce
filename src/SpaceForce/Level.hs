@@ -19,10 +19,11 @@ type ReloadTime = Float
 
 -- | Level type should have [Wave] and SpaceMap
 -- data Level = Level SpaceMap
+-- TODO: Add 'base' initial health to the level
 
 -- | Wave is a list of enemies
 -- TODO: Introduce the order of enemy bunches over time
--- data Wave = Wave StartT [Enemy]
+-- data Wave = Wave StartT Delta [Enemy]
 
 -- TODO : add types for enemies
 data EnemyType = Enemy1 | Enemy2
