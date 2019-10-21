@@ -1,6 +1,7 @@
 module SpaceForce.Level where
 
 import SpaceForce.Map (SpaceMap, ICoords)
+import Graphics.Gloss (Path)
 
 type CurrentTime = Float
 type StartT = Float
@@ -12,7 +13,7 @@ type Damage = Float
 type Coords = (Float,Float)
 type Position = Coords
 type Velocity = Coords
-type Speed = Coords
+type Speed = Float
 
 type LastShot = Float -- GameTime when the last shot happened
 type ReloadTime = Float
@@ -33,7 +34,7 @@ data Bullet = Bullet Position Velocity Damage
 
 data Weapon = Weapon Bullet ReloadTime
 
-newtype Path = Path [Coords]
+-- newtype Path = Path [Coords] -- no need because of Graphics.Gloss.Path
 
 data Enemy = Enemy Health Path EnemyType Position Speed
 
