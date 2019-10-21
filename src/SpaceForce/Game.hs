@@ -51,21 +51,33 @@ moveEnemy dt (Enemy a path c (x, y) speed)
         normX = vecX / vecLen
         normY = vecY / vecLen
 
-insideBase :: Enemy -> Base -> Bool
-insideBase (Enemy _ _ _ (ex, ey) _) (Base _ (x0, y0) w h) = undefined
+
+
+
+insideBase :: Base -> Enemy -> Bool
+insideBase (Base _ (x0, y0) w h) (Enemy _ _ _ (ex, ey) _) = 
+  (ex - unit/2 >= leftBorder && ex + unit/2 <= rightBorder
+   && ey - unit/2 >= lowerBorder && ey + unit/2<= upperBorder)
+  where 
+    upperBorder = y0 + h/2
+    lowerBorder = y0 - h/2
+    leftBorder = x0 - w/2
+    rightBorder = x0 + w/2
 
 updateWorld :: Float -> GameState -> GameState
 updateWorld dt (GameState a b (Base bHealth bCoord bW bH) 
-  (Movings bullets enemies) time wave) 
-  = GameState a b new_base (Movings bullets newEnemies) (time+dt) newWave
+  (Movings bullets oldEnemies) time wave) 
+  = GameState a b newBase (Movings bullets newEnemies) (time+dt) newWave
   where
     timeHasCome [] = ([], wave)
     timeHasCome ((appearTime, enemy):xs) = if time >= appearTime
       then ([enemy], xs)
       else ([], wave)
     (enemyToAdd, newWave) = timeHasCome wave
+    enemies = filter (not . (insideBase (Base bHealth bCoord bW bH))) oldEnemies
+    baseDamage = calculateEnemiesDamage (filter (insideBase (Base bHealth bCoord bW bH)) oldEnemies)
     newEnemies = moveEnemies dt (enemyToAdd ++ enemies)
-    new_base = Base (0 `max` bHealth) bCoord bW bH
+    newBase = Base (0 `max` (bHealth-baseDamage)) bCoord bW bH
 
 -- TODO: Do translation of absolute coords from window to local in levelMap
 canPutTower :: LevelMap -> ICoords -> Bool

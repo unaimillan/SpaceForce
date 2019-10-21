@@ -45,3 +45,11 @@ type Width = Float
 type Height = Float
 type BaseHealth = Float
 data Base = Base BaseHealth Position Width Height
+
+getEnemyDamage:: Enemy -> Float
+getEnemyDamage (Enemy _ _ Enemy1 _ _)= 100
+getEnemyDamage (Enemy _ _ Enemy2 _ _) = 200
+
+calculateEnemiesDamage :: [Enemy] -> Float
+calculateEnemiesDamage [] = 0
+calculateEnemiesDamage (x:xs) = getEnemyDamage x + calculateEnemiesDamage xs
