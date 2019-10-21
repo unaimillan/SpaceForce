@@ -12,7 +12,7 @@ backColor :: Color
 backColor = white
 
 simulationConst :: Int
-simulationConst = 120
+simulationConst = 60
 
 simpleDraw :: IO ()
 simpleDraw = display displayMode backColor (Circle 80)

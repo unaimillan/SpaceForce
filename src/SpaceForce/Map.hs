@@ -45,6 +45,7 @@ drawCell Base = color cyan (rectangleSolid unit unit)
 drawCell Road = color yellow (rectangleSolid unit unit)
 drawCell Entrance = color red (rectangleSolid unit unit)
 
+-- TODO: add dimensions support
 drawMap :: SpaceMap -> Picture
 drawMap func = pictures (map translated [1..11])
   where
