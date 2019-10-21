@@ -47,12 +47,12 @@ drawCell Entrance = color red (rectangleSolid unit unit)
 
 -- TODO: add dimensions support
 drawMap :: SpaceMap -> Picture
-drawMap func = pictures (map translated [1..11])
+drawMap (SpaceMap w h func) = pictures (map translated [1..h])
   where
-    translated y = translate 0 (fromIntegral y * unit) (drawRow func y)
+    translated y = translate 0 (fromIntegral y * unit) (drawRow (w, func) y)
 
-drawRow :: SpaceMap -> Integer -> Picture
-drawRow (SpaceMap _ _ func) y = pictures (map convert [1..12])
+drawRow :: (Integer, (Integer, Integer) -> Cell) -> Integer -> Picture
+drawRow (w, func) y = pictures (map convert [1..w])
   where
     convert x = translate (fromIntegral x * unit) 0 (drawCell (func (x, y)))
 
