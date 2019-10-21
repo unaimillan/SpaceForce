@@ -26,8 +26,9 @@ initialWorld :: GameState
 initialWorld = GameState level1 [] initBaseHealth (Movings [] []) 0 dummyWave
 
 updateWorld :: Float -> GameState -> GameState
-updateWorld _dt = id
+updateWorld dt (GameState a b c d time e) = GameState a b c d (time+dt) e
 
+-- TODO: Do translation of absolute coords from window to local in levelMap
 canPutTower :: LevelMap -> ICoords -> Bool
 canPutTower (SpaceMap _ _ mapFunc) coords = case mapFunc coords of
   Wall -> True
@@ -52,8 +53,11 @@ handleWorld (EventKey mouseKey Down _ (xpos, ypos))
   where
     newState = GameState lvl (new++towers) b c d e
     new = maybeToList canPut
-    canPut = if canPutTower lvl (floor xpos, floor ypos)
-      then chooseTower mouseKey (xpos, ypos)
+    localX = floor (xpos/unit+0.5)
+    localY = floor (ypos/unit+0.5)
+    canPut = if canPutTower lvl (localX, localY)
+      then chooseTower mouseKey (unit * fromIntegral localX
+                               , unit * fromIntegral localY)
       else Nothing
 handleWorld _ x = x
 
@@ -64,7 +68,7 @@ handleWorld _ x = x
 
 drawWorld :: GameState -> Picture
 drawWorld (GameState levelMap towers _ _ _ _) = drawMap levelMap 
-  <> drawTowers towers
+  <> drawTowers towers <> rectangleSolid unit unit
 
 drawTowers :: [Tower] -> Picture
 drawTowers towers = pictures (map drawTower towers)
@@ -75,4 +79,5 @@ drawTower (Tower _ _ Tower1 (x,y))
     (color green (ThickCircle (unit*0.25) (unit*0.5)))
 drawTower (Tower _ _ Tower2 (x,y)) 
   = translate (fromIntegral x) (fromIntegral y) 
-    (color red (Circle (unit*0.5)))
+    (color red (ThickCircle (unit*0.25) (unit*0.5)))
+

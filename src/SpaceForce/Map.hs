@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 module SpaceForce.Map where
+-- TODO: Rename this file to "Render.hs"
 -- TODO: make this file to draw everything
 -- TODO: Factor our level description to another file
 import Graphics.Gloss
@@ -34,7 +35,7 @@ level1 = SpaceMap 12 11 mappingFunc
       |(y == 6) && (x >= 2 && x <= 10) = Road
       | x == 2 && (y == 5 || y == 7) = Road
       | x == 8 && (y == 3 || y == 9) = Road
-      |otherwise = Wall
+      | otherwise = Wall
 
 level2 :: SpaceMap
 level2 = SpaceMap 10 10 (const Wall)
