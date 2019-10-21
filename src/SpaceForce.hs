@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wall #-}
 module SpaceForce where
 
 import Graphics.Gloss

@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wall #-}
 module SpaceForce.Game where
 
 import Data.Maybe (maybeToList)
@@ -27,8 +28,25 @@ initialWorld = GameState level1 [] initBaseHealth (Movings [] []) 0 dummyWave
 
 moveEnemies :: Float -> [Enemy] -> [Enemy]
 moveEnemies dt = map (moveEnemy dt)
+
+moveEnemy :: Float -> Enemy -> Enemy
+moveEnemy dt (Enemy a path c (x, y) speed) 
+    = Enemy a newPath c (newX, newY) speed
   where
-    moveEnemy dt (Enemy a b c (x, y) speed) = Enemy a b c (x+speed*dt, y) speed
+    ((newX, newY), newPath) = processPath path
+    processPath [] = ((x, y), [])
+    processPath (pathHead:least) = if diff pathHead (x, y) < 1e-1
+      then ((x, y), least)
+      else (newCoords pathHead, pathHead:least)
+    diff :: Coords -> Coords -> Float
+    diff (x1, y1) (x2, y2) = sqrt ((x2-x1)**2 + (y2-y1)**2)
+    newCoords (headX, headY) = (x+normX*speed*dt, y+normY*speed*dt)
+      where
+        vecX = headX - x
+        vecY = headY - y
+        vecLen = sqrt (vecX**2+vecY**2)
+        normX = vecX / vecLen
+        normY = vecY / vecLen
 
 updateWorld :: Float -> GameState -> GameState
 updateWorld dt (GameState a b c (Movings bullets enemies) time wave) 
@@ -98,9 +116,9 @@ drawEnemies :: [Enemy] -> Picture
 drawEnemies = pictures . map drawEnemy
 
 drawEnemy :: Enemy -> Picture
-drawEnemy (Enemy health _ Enemy1 (x, y) _) 
+drawEnemy (Enemy _health _ Enemy1 (x, y) _) 
   = translate (x*unit) (y*unit) (color orange (rectangleSolid unit unit))
-drawEnemy (Enemy health _ Enemy2 (x, y) _) 
+drawEnemy (Enemy _health _ Enemy2 (x, y) _) 
   = translate (x*unit) (y*unit) (color (dark orange) (rectangleSolid unit unit))
 
 enemyOne :: Enemy
@@ -110,7 +128,7 @@ enemyTwo :: Enemy
 enemyTwo = Enemy initialHealth lowerPath Enemy2 (1,2) (unit/4)
 
 upperPath :: Path
-upperPath = [(1,10), (7,10), (7,8), (2, 8), (2, 6), (6, 11)]
+upperPath = [(1,10), (8,10), (8,8), (2, 8), (2, 6), (12, 6)]
 
 lowerPath :: Path
-lowerPath = [(1,2), (7,2), (7,4), (2, 4), (2, 6), (6, 11)]
+lowerPath = [(1,2), (8,2), (8,4), (2, 4), (2, 6), (12, 6)]
