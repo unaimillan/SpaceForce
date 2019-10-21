@@ -4,18 +4,21 @@ module SpaceForce.Game where
 import Data.Maybe (maybeToList)
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Interact
-import SpaceForce.Map
+import SpaceForce.Map hiding (Cell(Base))
 import SpaceForce.Level
 
 data GameState = GameState 
     LevelMap 
     [Tower] 
-    BaseHealth
+    Base
     Movings 
     CurrentTime [(StartT, Enemy)]
 
 initBaseHealth :: BaseHealth
 initBaseHealth = 1500
+
+initBase :: Base
+initBase = Base initBaseHealth (11.5*unit, 6*unit) (2*unit) (7*unit)
 
 initialHealth :: Health
 initialHealth = 100
@@ -24,7 +27,7 @@ dummyWave :: [(StartT, Enemy)]
 dummyWave = [(0, enemyOne), (10, enemyTwo)]
 
 initialWorld :: GameState
-initialWorld = GameState level1 [] initBaseHealth (Movings [] []) 0 dummyWave
+initialWorld = GameState level1 [] initBase (Movings [] []) 0 dummyWave
 
 moveEnemies :: Float -> [Enemy] -> [Enemy]
 moveEnemies dt = map (moveEnemy dt)
@@ -48,9 +51,13 @@ moveEnemy dt (Enemy a path c (x, y) speed)
         normX = vecX / vecLen
         normY = vecY / vecLen
 
+insideBase :: Enemy -> Base -> Bool
+insideBase (Enemy _ _ _ (ex, ey) _) (Base _ (x0, y0) w h) = undefined
+
 updateWorld :: Float -> GameState -> GameState
-updateWorld dt (GameState a b c (Movings bullets enemies) time wave) 
-  = GameState a b c (Movings bullets newEnemies) (time+dt) newWave
+updateWorld dt (GameState a b (Base bHealth bCoord bW bH) 
+  (Movings bullets enemies) time wave) 
+  = GameState a b new_base (Movings bullets newEnemies) (time+dt) newWave
   where
     timeHasCome [] = ([], wave)
     timeHasCome ((appearTime, enemy):xs) = if time >= appearTime
@@ -58,6 +65,7 @@ updateWorld dt (GameState a b c (Movings bullets enemies) time wave)
       else ([], wave)
     (enemyToAdd, newWave) = timeHasCome wave
     newEnemies = moveEnemies dt (enemyToAdd ++ enemies)
+    new_base = Base (0 `max` bHealth) bCoord bW bH
 
 -- TODO: Do translation of absolute coords from window to local in levelMap
 canPutTower :: LevelMap -> ICoords -> Bool
@@ -98,8 +106,9 @@ handleWorld _ x = x
   --   new_state = _
 
 drawWorld :: GameState -> Picture
-drawWorld (GameState levelMap towers _ (Movings _ enems) _ _) = drawMap levelMap 
-  <> drawTowers towers <> drawEnemies enems
+drawWorld (GameState levelMap towers base (Movings _ enems) _ _) 
+  = drawMap levelMap <> drawTowers towers 
+  <> drawEnemies enems <> drawBase base
 
 drawTowers :: [Tower] -> Picture
 drawTowers towers = pictures (map drawTower towers)
@@ -112,23 +121,34 @@ drawTower (Tower _ _ Tower2 (x,y))
   = translate (fromIntegral x) (fromIntegral y) 
     (color red (ThickCircle (unit*0.25) (unit*0.5)))
 
+drawBase :: Base -> Picture
+drawBase (Base health (x, y) w h) = translate x y (alivePart <> deadPart)
+  where
+    aliveHeight = health / initBaseHealth * h
+    deadHeight = h - aliveHeight
+    deadPart = translate 0 (health/initBaseHealth*h/2)
+      (color (dark red) (rectangleSolid w deadHeight))
+    alivePart = color blue (rectangleSolid w h)
+
 drawEnemies :: [Enemy] -> Picture
 drawEnemies = pictures . map drawEnemy
 
 drawEnemy :: Enemy -> Picture
 drawEnemy (Enemy _health _ Enemy1 (x, y) _) 
-  = translate (x*unit) (y*unit) (color orange (rectangleSolid unit unit))
+  = translate x y (color orange (rectangleSolid unit unit))
 drawEnemy (Enemy _health _ Enemy2 (x, y) _) 
-  = translate (x*unit) (y*unit) (color (dark orange) (rectangleSolid unit unit))
+  = translate x y (color (dark orange) (rectangleSolid unit unit))
 
 enemyOne :: Enemy
-enemyOne = Enemy initialHealth lowerPath Enemy1 (1,2) (unit/30)
+enemyOne = Enemy initialHealth lowerPath Enemy1 (1*unit,2*unit) unit
 
 enemyTwo :: Enemy
-enemyTwo = Enemy initialHealth lowerPath Enemy2 (1,2) (unit/4)
+enemyTwo = Enemy initialHealth lowerPath Enemy2 (1*unit,2*unit) (unit*4)
 
 upperPath :: Path
-upperPath = [(1,10), (8,10), (8,8), (2, 8), (2, 6), (12, 6)]
+upperPath = map (\(x,y) -> (unit*x, unit*y))
+  [(1,10), (8,10), (8,8), (2, 8), (2, 6), (12, 6)]
 
 lowerPath :: Path
-lowerPath = [(1,2), (8,2), (8,4), (2, 4), (2, 6), (12, 6)]
+lowerPath = map (\(x,y) -> (unit*x, unit*y))
+  [(1,2), (8,2), (8,4), (2, 4), (2, 6), (12, 6)]

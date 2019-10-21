@@ -6,7 +6,6 @@ import Graphics.Gloss (Path)
 type CurrentTime = Float
 type StartT = Float
 
-type BaseHealth = Float
 type Health = Float
 type Damage = Float
 
@@ -41,3 +40,8 @@ data Enemy = Enemy Health Path EnemyType Position Speed
 data Tower = Tower LastShot Weapon TowerType ICoords
 
 data Movings = Movings [Bullet] [Enemy]
+
+type Width = Float
+type Height = Float
+type BaseHealth = Float
+data Base = Base BaseHealth Position Width Height
