@@ -1,4 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
+
+-- TODO put enemies in enemies.hs or other suitable file
 module SpaceForce.Game where
 
 import Data.Maybe (maybeToList)
@@ -6,6 +8,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Interact
 import SpaceForce.Map hiding (Cell(Base))
 import SpaceForce.Level
+import SpaceForce.Physics
 
 data GameState = GameState 
     LevelMap 
@@ -65,9 +68,9 @@ insideBase (Base _ (x0, y0) w h) (Enemy _ _ _ (ex, ey) _) =
     rightBorder = x0 + w/2
 
 updateWorld :: Float -> GameState -> GameState
-updateWorld dt (GameState a b (Base bHealth bCoord bW bH) 
+updateWorld dt (GameState a towers (Base bHealth bCoord bW bH) 
   (Movings bullets oldEnemies) time wave) 
-  = GameState a b newBase (Movings bullets newEnemies) (time+dt) newWave
+  = GameState a towers newBase (Movings newBullets newEnemies) (time+dt) newWave
   where
     timeHasCome [] = ([], wave)
     timeHasCome ((appearTime, enemy):xs) = if time >= appearTime
@@ -78,6 +81,8 @@ updateWorld dt (GameState a b (Base bHealth bCoord bW bH)
     baseDamage = calculateEnemiesDamage (filter (insideBase (Base bHealth bCoord bW bH)) oldEnemies)
     newEnemies = moveEnemies dt (enemyToAdd ++ enemies)
     newBase = Base (0 `max` (bHealth-baseDamage)) bCoord bW bH
+    -- newTowers = updateLastShots time towers
+    newBullets = moveBullets dt ((spawnBullets time towers) ++ bullets)
 
 -- TODO: Do translation of absolute coords from window to local in levelMap
 canPutTower :: LevelMap -> ICoords -> Bool
@@ -132,6 +137,7 @@ drawTower (Tower _ _ Tower1 (x,y))
 drawTower (Tower _ _ Tower2 (x,y)) 
   = translate (fromIntegral x) (fromIntegral y) 
     (color red (ThickCircle (unit*0.25) (unit*0.5)))
+
 
 drawBase :: Base -> Picture
 drawBase (Base health (x, y) w h) = translate x y (alivePart <> deadPart)

@@ -37,7 +37,13 @@ data Weapon = Weapon Bullet ReloadTime
 
 data Enemy = Enemy Health Path EnemyType Position Speed
 
-data Tower = Tower LastShot Weapon TowerType ICoords
+data Tower = Tower
+    {
+        lastShot :: Float,
+        weapon :: Weapon,
+        towerType :: TowerType,
+        position :: ICoords
+    }
 
 data Movings = Movings [Bullet] [Enemy]
 
