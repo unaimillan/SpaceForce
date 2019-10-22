@@ -1,4 +1,4 @@
-module SpaceForce.Physics where
+module SpaceForce.Bullet where
 
 import SpaceForce.Level (Bullet(..), reloadTime, bullet)
 import SpaceForce.Tower
@@ -22,6 +22,15 @@ spawnBullet curTime tower = if curTime > lastShot tower + reloadTime (weapon tow
 
 spawnBullets :: Float -> [Tower] -> [Bullet]
 spawnBullets time = concat . (map (spawnBullet time))
+
+isBulletOnMap :: (Float, Float) -> Bullet -> Bool
+isBulletOnMap (dimX, dimY) bullet = (unit/2 <= x && x <= dimX)
+    && (unit/2 <= y && y <= dimY)
+    where
+        (x, y) = bPosition bullet
+
+dropBullets :: (Float, Float) -> [Bullet] -> [Bullet]
+dropBullets dims = filter (isBulletOnMap dims)
 
 moveBullet:: Float -> Bullet -> Bullet
 moveBullet dt (Bullet position velocity damage) = Bullet (newPosition) velocity damage

@@ -8,7 +8,7 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Interact
 import SpaceForce.Map hiding (Cell(Base))
 import SpaceForce.Level
-import SpaceForce.Physics
+import SpaceForce.Bullet
 import SpaceForce.Tower (Tower (..), TowerType(..), updateLastShots)
 
 data GameState = GameState 
@@ -66,9 +66,9 @@ insideBase (Base _ (x0, y0) w h) (Enemy _ _ _ (ex, ey) _) =
     rightBorder = x0 + w/2
 
 updateWorld :: Float -> GameState -> GameState
-updateWorld dt (GameState a towers (Base bHealth bCoord bW bH) 
+updateWorld dt (GameState spaceMap towers (Base bHealth bCoord bW bH) 
   (Movings bullets oldEnemies) time wave) 
-  = GameState a newTowers newBase (Movings newBullets newEnemies) (time+dt) newWave
+  = GameState spaceMap newTowers newBase (Movings newBullets newEnemies) (time+dt) newWave
   where
     timeHasCome [] = ([], wave)
     timeHasCome ((appearTime, enemy):xs) = if time >= appearTime
@@ -80,7 +80,9 @@ updateWorld dt (GameState a towers (Base bHealth bCoord bW bH)
     newEnemies = moveEnemies dt (enemyToAdd ++ enemies)
     newBase = Base (0 `max` (bHealth-baseDamage)) bCoord bW bH
     newTowers = updateLastShots time towers
-    newBullets = moveBullets dt ((spawnBullets time towers) ++ bullets)
+    dims = (fromIntegral (levelWidth spaceMap) * unit+unit/2
+      , fromIntegral (levelHeight spaceMap) * unit+unit/2)
+    newBullets = dropBullets dims (moveBullets dt ((spawnBullets time towers) ++ bullets))
 
 -- TODO: Do translation of absolute coords from window to local in levelMap
 canPutTower :: LevelMap -> ICoords -> Bool
@@ -121,9 +123,9 @@ handleWorld _ x = x
   --   new_state = _
 
 drawWorld :: GameState -> Picture
-drawWorld (GameState levelMap towers base (Movings bulls enems) _ _) 
-  = drawMap levelMap <> drawTowers towers 
-  <> drawEnemies enems <> drawBase base <> drawBullets bulls
+drawWorld (GameState levelMap towers base (Movings bullets enems) _ _) 
+  = drawMap levelMap <> drawBullets bullets <> drawTowers towers 
+  <> drawEnemies enems <> drawBase base
 
 drawTowers :: [Tower] -> Picture
 drawTowers towers = pictures (map drawTower towers)
