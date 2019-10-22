@@ -1,7 +1,7 @@
 {-#  LANGUAGE DuplicateRecordFields #-}
 module SpaceForce.Level where
 
-import SpaceForce.Map (SpaceMap, ICoords)
+import SpaceForce.Map (SpaceMap, ICoords, unit)
 import Graphics.Gloss (Path)
 
 type CurrentTime = Float
@@ -30,9 +30,9 @@ type ReloadTime = Float
 
 data Bullet = Bullet 
     {
-        bPosition :: Position,
-        bVelocity :: Velocity,
-        bDamage   :: Damage
+        bulletPosition :: Position,
+        bulletVelocity :: Velocity,
+        bulletDamage   :: Damage
     }
 
 data Weapon = Weapon 
@@ -52,7 +52,13 @@ data Base = Base BaseHealth Position Width Height
 
 
 data EnemyType = Enemy1 | Enemy2
-data Enemy = Enemy Health Path EnemyType Position Speed
+data Enemy = Enemy {
+        enemyHealth :: Health,
+        enemyPath :: Path,
+        enemyType :: EnemyType,
+        enemyPos :: Position,
+        enemySpeed :: Speed
+    }
 
 getEnemyDamage:: Enemy -> Float
 getEnemyDamage (Enemy _ _ Enemy1 _ _)= 100
@@ -61,3 +67,22 @@ getEnemyDamage (Enemy _ _ Enemy2 _ _) = 200
 calculateEnemiesDamage :: [Enemy] -> Float
 calculateEnemiesDamage [] = 0
 calculateEnemiesDamage (x:xs) = getEnemyDamage x + calculateEnemiesDamage xs
+
+hitEnemy :: [Bullet] -> Enemy -> Enemy
+hitEnemy bullets enemy = enemy { enemyHealth = newHealth }
+    where
+        (x, y) = enemyPos enemy
+        newHealth = enemyHealth enemy - hittedHealth
+        hittedHealth = sum (map hitDamage bullets)
+        hitDamage curBullet 
+            = if abs (x - bulletX) <= unit/2 && abs (y - bulletY) <= unit/2
+            then bulletDamage curBullet
+            else 0
+            where
+                (bulletX, bulletY) = bulletPosition curBullet
+
+hitEnemies :: [Bullet] -> [Enemy] -> [Enemy]
+hitEnemies bullets = map (hitEnemy bullets)
+
+removeEnemies :: (Enemy -> Bool) -> [Enemy] -> [Enemy]
+removeEnemies = filter

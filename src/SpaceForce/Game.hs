@@ -28,7 +28,7 @@ initialHealth :: Health
 initialHealth = 100
 
 dummyWave :: [(StartT, Enemy)]
-dummyWave = [(0, enemyOne), (10, enemyTwo)]
+dummyWave = [(0, enemyOne), (10, enemyTwo), (15, enemyOne), (18, enemyOne)]
 
 initialWorld :: GameState
 initialWorld = GameState level1 [] initBase (Movings [] []) 0 dummyWave
@@ -65,6 +65,10 @@ insideBase (Base _ (x0, y0) w h) (Enemy _ _ _ (ex, ey) _) =
     leftBorder = x0 - w/2
     rightBorder = x0 + w/2
 
+isEnemyAlive :: Base -> Enemy -> Bool
+isEnemyAlive base enemy = enemyHealth enemy > 0
+  && not (insideBase base enemy)
+
 updateWorld :: Float -> GameState -> GameState
 updateWorld dt (GameState spaceMap towers (Base bHealth bCoord bW bH) 
   (Movings bullets oldEnemies) time wave) 
@@ -75,14 +79,15 @@ updateWorld dt (GameState spaceMap towers (Base bHealth bCoord bW bH)
       then ([enemy], xs)
       else ([], wave)
     (enemyToAdd, newWave) = timeHasCome wave
-    enemies = filter (not . (insideBase (Base bHealth bCoord bW bH))) oldEnemies
+    enemies = filter (isEnemyAlive (Base bHealth bCoord bW bH)) oldEnemies
     baseDamage = calculateEnemiesDamage (filter (insideBase (Base bHealth bCoord bW bH)) oldEnemies)
-    newEnemies = moveEnemies dt (enemyToAdd ++ enemies)
+    newEnemies = hitEnemies bullets (moveEnemies dt (enemyToAdd ++ enemies))
     newBase = Base (0 `max` (bHealth-baseDamage)) bCoord bW bH
     newTowers = updateLastShots time towers
     dims = (fromIntegral (levelWidth spaceMap) * unit+unit/2
       , fromIntegral (levelHeight spaceMap) * unit+unit/2)
-    newBullets = dropBullets dims (moveBullets dt ((spawnBullets time towers) ++ bullets))
+    newBullets =  dropBullets oldEnemies dims 
+      (moveBullets dt ((spawnBullets time towers) ++ bullets))
 
 -- TODO: Do translation of absolute coords from window to local in levelMap
 canPutTower :: LevelMap -> ICoords -> Bool
@@ -151,10 +156,10 @@ drawEnemies :: [Enemy] -> Picture
 drawEnemies = pictures . map drawEnemy
 
 drawEnemy :: Enemy -> Picture
-drawEnemy (Enemy _health _ Enemy1 (x, y) _) 
-  = translate x y (color orange (rectangleSolid unit unit))
-drawEnemy (Enemy _health _ Enemy2 (x, y) _) 
-  = translate x y (color (dark orange) (rectangleSolid unit unit))
+drawEnemy (Enemy health _ Enemy1 (x, y) _) 
+  = translate x y (color (withAlpha (health/initialHealth) (orange)) (rectangleSolid unit unit))
+drawEnemy (Enemy health _ Enemy2 (x, y) _) 
+  = translate x y (color (withAlpha (health/initialHealth) (dark orange)) (rectangleSolid unit unit))
 
 drawBullets :: [Bullet] -> Picture
 drawBullets = pictures . map drawBullet

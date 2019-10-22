@@ -1,11 +1,11 @@
 module SpaceForce.Bullet where
 
-import SpaceForce.Level (Bullet(..), reloadTime, bullet)
+import SpaceForce.Level (Bullet(..), reloadTime, bullet, Enemy(..))
 import SpaceForce.Tower
 import SpaceForce.Map (unit)
 
 constDamage :: Float
-constDamage = 5
+constDamage = 1
 
 -- adds a new bullet to a list of bullets
 spawnBullet :: Float -> Tower -> [Bullet]
@@ -27,10 +27,22 @@ isBulletOnMap :: (Float, Float) -> Bullet -> Bool
 isBulletOnMap (dimX, dimY) bullet = (unit/2 <= x && x <= dimX)
     && (unit/2 <= y && y <= dimY)
     where
-        (x, y) = bPosition bullet
+        (x, y) = bulletPosition bullet
 
-dropBullets :: (Float, Float) -> [Bullet] -> [Bullet]
-dropBullets dims = filter (isBulletOnMap dims)
+isBulletInEnemy :: [Enemy] -> Bullet -> Bool
+isBulletInEnemy enemies bullet = any isBulletInside enemies
+    where
+        (bulletX, bulletY) = bulletPosition bullet
+        isBulletInside enemy = abs (x - bulletX) <= unit/2 && abs (y - bulletY) <= unit/2
+            where
+                (x, y) = enemyPos enemy
+
+isBulletValid :: [Enemy] -> (Float, Float) -> Bullet -> Bool
+isBulletValid enemies dims bullet 
+    = not (isBulletInEnemy enemies bullet) && isBulletOnMap dims bullet
+
+dropBullets :: [Enemy] -> (Float, Float) -> [Bullet] -> [Bullet]
+dropBullets enemies dims = filter (isBulletValid enemies dims)
 
 moveBullet:: Float -> Bullet -> Bullet
 moveBullet dt (Bullet position velocity damage) = Bullet (newPosition) velocity damage
@@ -42,4 +54,3 @@ moveBullet dt (Bullet position velocity damage) = Bullet (newPosition) velocity 
 
 moveBullets :: Float -> [Bullet] -> [Bullet]
 moveBullets dt oldList = map (moveBullet dt) oldList
-
