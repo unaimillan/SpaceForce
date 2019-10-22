@@ -1,15 +1,18 @@
 module SpaceForce.Physics where
 
-import SpaceForce.Level(Bullet(..), Tower, position)
+import SpaceForce.Level (Bullet(..), reloadTime, bullet)
+import SpaceForce.Tower
+import SpaceForce.Map (unit)
 
 constDamage :: Float
 constDamage = 5
 
 -- adds a new bullet to a list of bullets
 spawnBullet :: Float -> Tower -> [Bullet]
-spawnBullet curTime t = [b1,b2,b3,b4] -- if curTime > then [b1,b2,b3,b4] else []
+spawnBullet curTime tower = if curTime > lastShot tower + reloadTime (weapon tower)
+    then [b1,b2,b3,b4] else []
     where
-        pos = position t
+        pos = position tower
         (x,y) = pos
         floatPos = (fromIntegral x, fromIntegral y) 
         b1 = Bullet floatPos (1,0)  constDamage
@@ -21,11 +24,12 @@ spawnBullets :: Float -> [Tower] -> [Bullet]
 spawnBullets time = concat . (map (spawnBullet time))
 
 moveBullet:: Float -> Bullet -> Bullet
-moveBullet dt ( Bullet position velocity damage) = Bullet (newPosition) velocity damage
+moveBullet dt (Bullet position velocity damage) = Bullet (newPosition) velocity damage
     where
         (x1,y1) = position
         (x2,y2) = velocity
-        newPosition = (x1+x2*dt,y1+y2*dt)
+        speed = unit
+        newPosition = (x1+x2*dt*speed,y1+y2*dt*speed)
 
 moveBullets :: Float -> [Bullet] -> [Bullet]
 moveBullets dt oldList = map (moveBullet dt) oldList
