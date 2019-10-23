@@ -43,12 +43,23 @@ data Weapon = Weapon
 
 -- newtype Path = Path [Coords] -- no need because of Graphics.Gloss.Path
 
-data Movings = Movings [Bullet] [Enemy]
+data Movings = Movings 
+    {
+        movingsBullets :: [Bullet],
+        movingsEnemies:: [Enemy]
+    }
+ 
 
 type Width = Float
 type Height = Float
 type BaseHealth = Float
-data Base = Base BaseHealth Position Width Height
+data Base = Base 
+    {
+         baseHealth :: Float,
+         basePosition :: Position,
+         baseWidth :: Float,
+         baseHeight :: Float
+    }
 
 
 data EnemyType = Enemy1 | Enemy2
@@ -61,7 +72,7 @@ data Enemy = Enemy {
     }
 
 getEnemyDamage:: Enemy -> Float
-getEnemyDamage (Enemy _ _ Enemy1 _ _)= 100
+getEnemyDamage (Enemy _ _ Enemy1 _ _)= 2000 -- TODO change later (for testing it's like that)
 getEnemyDamage (Enemy _ _ Enemy2 _ _) = 200
 
 calculateEnemiesDamage :: [Enemy] -> Float

@@ -2,7 +2,7 @@
 module SpaceForce where
 
 import Graphics.Gloss
-import SpaceForce.Game (initialWorld, handleWorld, updateWorld, drawWorld)
+import SpaceForce.Game (initialWorld, handleWorld, updateWorld, drawWrapper)
 
 -- | Default for displaying window: Name Size Position
 displayMode :: Display
@@ -20,4 +20,4 @@ simpleDraw = display displayMode backColor (Circle 80)
 
 run :: IO ()
 run = play displayMode backColor simulationConst
-  initialWorld drawWorld handleWorld updateWorld
+  initialWorld drawWrapper handleWorld updateWorld

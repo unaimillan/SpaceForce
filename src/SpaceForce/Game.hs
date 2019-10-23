@@ -12,11 +12,14 @@ import SpaceForce.Bullet
 import SpaceForce.Tower (Tower (..), TowerType(..), updateLastShots)
 
 data GameState = GameState 
-    LevelMap 
-    [Tower] 
-    Base
-    Movings 
-    CurrentTime [(StartT, Enemy)]
+    {
+      gameStateLevel :: LevelMap ,
+      gameStateTowers :: [Tower] ,
+      gameStateBase :: Base,
+      gameStateMovings :: Movings ,
+      gameStateTime :: CurrentTime,
+      gameStateWave :: [(StartT, Enemy)]
+    }
 
 initBaseHealth :: BaseHealth
 initBaseHealth = 1500
@@ -28,7 +31,8 @@ initialHealth :: Health
 initialHealth = 100
 
 dummyWave :: [(StartT, Enemy)]
-dummyWave = [(0, enemyOne), (10, enemyTwo), (15, enemyOne), (18, enemyOne)]
+dummyWave = [(0, enemyOne), (10, enemyTwo), (20, enemyOne), (20.1, enemyThree), (20.2, enemyThree),
+  (20.3, enemyFour), (20.4, enemyOne), (20.5, enemyTwo)]
 
 initialWorld :: GameState
 initialWorld = GameState level1 [] initBase (Movings [] []) 0 dummyWave
@@ -126,6 +130,23 @@ handleWorld _ x = x
   -- state = new_state
   -- where
   --   new_state = _
+detectState :: GameState -> Maybe Bool
+detectState state = if currentBaseHealth <= 0 then Just False
+         else if length enemies == 0 && length wave == 0 then Just True
+         else Nothing
+    where 
+       enemies = movingsEnemies (gameStateMovings state)
+       wave = gameStateWave state
+       currentBaseHealth = baseHealth (gameStateBase state)
+
+drawWrapper :: GameState -> Picture
+drawWrapper state = case detectState state of
+  (Just x) -> drawResult x
+  Nothing -> drawWorld state 
+
+drawResult :: Bool -> Picture
+drawResult True = Text "You Won"
+drawResult False = Text "Nice Try"
 
 drawWorld :: GameState -> Picture
 drawWorld (GameState levelMap towers base (Movings bullets enems) _ _) 
@@ -168,11 +189,18 @@ drawBullet :: Bullet -> Picture
 drawBullet (Bullet (x, y) _ _) = translate x y 
   (color (dark cyan) (rectangleSolid (0.1*unit) (0.1*unit)))
 
+-- TODO fix initial position for the enemy to be the first one on the path
 enemyOne :: Enemy
 enemyOne = Enemy initialHealth lowerPath Enemy1 (1*unit,2*unit) unit
 
 enemyTwo :: Enemy
-enemyTwo = Enemy initialHealth lowerPath Enemy2 (1*unit,2*unit) (unit*4)
+enemyTwo = Enemy initialHealth upperPath Enemy2 (1*unit,10*unit) (unit*4)
+
+enemyThree :: Enemy
+enemyThree = Enemy initialHealth upperPath Enemy1 (1*unit,10*unit) (unit*4)
+
+enemyFour :: Enemy
+enemyFour = Enemy initialHealth lowerPath Enemy2 (1*unit,2*unit) (unit*4)
 
 upperPath :: Path
 upperPath = map (\(x,y) -> (unit*x, unit*y))
