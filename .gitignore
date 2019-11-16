@@ -20,7 +20,9 @@ cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
-.stack-work/
 SpaceForce.cabal
 *~
 *code-workspace
+.idea
+SpaceForce.iml
+out
