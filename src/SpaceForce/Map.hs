@@ -7,13 +7,9 @@ import Graphics.Gloss
 
 --for now
 type ICoords = (Integer, Integer)
-
 data Cell = Wall | Road | Base | Entrance
-
 type Width = Integer
-
 type Height = Integer
-
 type LevelMap = SpaceMap
 
 -- | Level template, params: width, height, mappingFunction
@@ -21,7 +17,7 @@ data SpaceMap = SpaceMap
   {
     levelWidth :: Width,
     levelHeight :: Height,
-    levelmapping :: (ICoords -> Cell)
+    levelmapping :: ICoords -> Cell
   }
 
 -- TODO check later also scale unit for drawing

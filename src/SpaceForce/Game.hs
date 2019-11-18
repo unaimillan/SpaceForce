@@ -11,15 +11,15 @@ import SpaceForce.Level
 import SpaceForce.Bullet
 import SpaceForce.Tower (Tower (..), TowerType(..), updateLastShots)
 
-data GameState = GameState 
-    {
-      gameStateLevel :: LevelMap ,
-      gameStateTowers :: [Tower] ,
-      gameStateBase :: Base,
-      gameStateMovings :: Movings ,
-      gameStateTime :: CurrentTime,
-      gameStateWave :: [(StartT, Enemy)]
-    }
+data GameState = GameState
+  {
+    gameStateLevel :: LevelMap ,
+    gameStateTowers :: [Tower] ,
+    gameStateBase :: Base,
+    gameStateMovings :: Movings ,
+    gameStateTime :: CurrentTime,
+    gameStateWave :: [(StartT, Enemy)]
+  }
 
 initBaseHealth :: BaseHealth
 initBaseHealth = 1500
@@ -31,8 +31,16 @@ initialHealth :: Health
 initialHealth = 100
 
 dummyWave :: [(StartT, Enemy)]
-dummyWave = [(0, enemyOne), (10, enemyTwo), (20, enemyOne), (20.1, enemyThree), (20.2, enemyThree),
-  (20.3, enemyFour), (20.4, enemyOne), (20.5, enemyTwo)]
+dummyWave = [
+    (0, enemyOne)
+  , (10, enemyTwo)
+  , (20, enemyOne)
+  , (20.1, enemyThree)
+  , (20.2, enemyThree)
+  , (20.3, enemyFour)
+  , (20.4, enemyOne)
+  , (20.5, enemyTwo)
+  ]
 
 initialWorld :: GameState
 initialWorld = GameState level1 [] initBase (Movings [] []) 0 dummyWave
@@ -41,8 +49,8 @@ moveEnemies :: Float -> [Enemy] -> [Enemy]
 moveEnemies dt = map (moveEnemy dt)
 
 moveEnemy :: Float -> Enemy -> Enemy
-moveEnemy dt (Enemy a path c (x, y) speed) 
-    = Enemy a newPath c (newX, newY) speed
+moveEnemy dt (Enemy a path c (x, y) speed) =
+  Enemy a newPath c (newX, newY) speed
   where
     ((newX, newY), newPath) = processPath path
     processPath [] = ((x, y), [])
@@ -60,23 +68,26 @@ moveEnemy dt (Enemy a path c (x, y) speed)
         normY = vecY / vecLen
 
 insideBase :: Base -> Enemy -> Bool
-insideBase (Base _ (x0, y0) w h) (Enemy _ _ _ (ex, ey) _) = 
-  (ex - unit/2 >= leftBorder && ex + unit/2 <= rightBorder
-   && ey - unit/2 >= lowerBorder && ey + unit/2<= upperBorder)
-  where 
-    upperBorder = y0 + h/2
-    lowerBorder = y0 - h/2
-    leftBorder = x0 - w/2
-    rightBorder = x0 + w/2
+insideBase (Base _ (x0, y0) w h) (Enemy _ _ _ (ex, ey) _) =
+  ex - unit / 2 >= leftBorder &&
+  ex + unit / 2 <= rightBorder &&
+  ey - unit / 2 >= lowerBorder &&
+  ey + unit / 2 <= upperBorder
+  where
+    upperBorder = y0 + h / 2
+    lowerBorder = y0 - h / 2
+    leftBorder = x0 - w / 2
+    rightBorder = x0 + w / 2
 
 isEnemyAlive :: Base -> Enemy -> Bool
 isEnemyAlive base enemy = enemyHealth enemy > 0
   && not (insideBase base enemy)
 
 updateWorld :: Float -> GameState -> GameState
-updateWorld dt (GameState spaceMap towers (Base bHealth bCoord bW bH) 
-  (Movings bullets oldEnemies) time wave) 
-  = GameState spaceMap newTowers newBase (Movings newBullets newEnemies) (time+dt) newWave
+updateWorld dt (GameState spaceMap towers (Base bHealth bCoord bW bH)
+  (Movings bullets oldEnemies) time wave)
+  = GameState spaceMap newTowers newBase
+    (Movings newBullets newEnemies) (time+dt) newWave
   where
     timeHasCome [] = ([], wave)
     timeHasCome ((appearTime, enemy):xs) = if time >= appearTime
@@ -84,14 +95,15 @@ updateWorld dt (GameState spaceMap towers (Base bHealth bCoord bW bH)
       else ([], wave)
     (enemyToAdd, newWave) = timeHasCome wave
     enemies = filter (isEnemyAlive (Base bHealth bCoord bW bH)) oldEnemies
-    baseDamage = calculateEnemiesDamage (filter (insideBase (Base bHealth bCoord bW bH)) oldEnemies)
+    baseDamage = calculateEnemiesDamage
+      (filter (insideBase (Base bHealth bCoord bW bH)) oldEnemies)
     newEnemies = hitEnemies bullets (moveEnemies dt (enemyToAdd ++ enemies))
     newBase = Base (0 `max` (bHealth-baseDamage)) bCoord bW bH
     newTowers = updateLastShots time towers
     dims = (fromIntegral (levelWidth spaceMap) * unit+unit/2
       , fromIntegral (levelHeight spaceMap) * unit+unit/2)
-    newBullets =  dropBullets oldEnemies dims 
-      (moveBullets dt ((spawnBullets time towers) ++ bullets))
+    newBullets =  dropBullets oldEnemies dims
+      (moveBullets dt (spawnBullets time towers ++ bullets))
 
 -- TODO: Do translation of absolute coords from window to local in levelMap
 canPutTower :: LevelMap -> ICoords -> Bool
@@ -101,8 +113,8 @@ canPutTower (SpaceMap _ _ mapFunc) coords = case mapFunc coords of
 
 chooseTower :: Key -> Coords -> Maybe Tower
 chooseTower (MouseButton LeftButton) (xpos, ypos)
-  = Just (Tower 0 
-            (Weapon (Bullet (xpos, ypos) (0,0) 100) 0.3) Tower1 
+  = Just (Tower 0
+            (Weapon (Bullet (xpos, ypos) (0,0) 100) 0.3) Tower1
             (floor xpos, floor ypos)
           )
 chooseTower (MouseButton RightButton) (xpos, ypos)
@@ -126,42 +138,43 @@ handleWorld (EventKey mouseKey Down _ (xpos, ypos))
       else Nothing
 handleWorld _ x = x
 
-  -- (EventKey (MouseButton LeftButton) Down _ (xpos, ypos)) 
+  -- (EventKey (MouseButton LeftButton) Down _ (xpos, ypos))
   -- state = new_state
   -- where
   --   new_state = _
 detectState :: GameState -> Maybe Bool
-detectState state = if currentBaseHealth <= 0 then Just False
-         else if length enemies == 0 && length wave == 0 then Just True
-         else Nothing
-    where 
-       enemies = movingsEnemies (gameStateMovings state)
-       wave = gameStateWave state
-       currentBaseHealth = baseHealth (gameStateBase state)
+detectState state
+  | currentBaseHealth <= 0 = Just False
+  | null enemies && null wave = Just True
+  | otherwise = Nothing
+  where
+    enemies = movingsEnemies (gameStateMovings state)
+    wave = gameStateWave state
+    currentBaseHealth = baseHealth (gameStateBase state)
 
 drawWrapper :: GameState -> Picture
 drawWrapper state = case detectState state of
   (Just x) -> drawResult x
-  Nothing -> drawWorld state 
+  Nothing -> drawWorld state
 
 drawResult :: Bool -> Picture
 drawResult True = Text "You Won"
 drawResult False = Text "Nice Try"
 
 drawWorld :: GameState -> Picture
-drawWorld (GameState levelMap towers base (Movings bullets enems) _ _) 
-  = drawMap levelMap <> drawBullets bullets <> drawTowers towers 
+drawWorld (GameState levelMap towers base (Movings bullets enems) _ _)
+  = drawMap levelMap <> drawBullets bullets <> drawTowers towers
   <> drawEnemies enems <> drawBase base
 
 drawTowers :: [Tower] -> Picture
 drawTowers towers = pictures (map drawTower towers)
 
 drawTower :: Tower -> Picture
-drawTower (Tower _ _ Tower1 (x,y)) 
-  = translate (fromIntegral x) (fromIntegral y) 
+drawTower (Tower _ _ Tower1 (x,y))
+  = translate (fromIntegral x) (fromIntegral y)
     (color green (ThickCircle (unit*0.25) (unit*0.5)))
-drawTower (Tower _ _ Tower2 (x,y)) 
-  = translate (fromIntegral x) (fromIntegral y) 
+drawTower (Tower _ _ Tower2 (x,y))
+  = translate (fromIntegral x) (fromIntegral y)
     (color red (ThickCircle (unit*0.25) (unit*0.5)))
 
 drawBase :: Base -> Picture
@@ -177,16 +190,19 @@ drawEnemies :: [Enemy] -> Picture
 drawEnemies = pictures . map drawEnemy
 
 drawEnemy :: Enemy -> Picture
-drawEnemy (Enemy health _ Enemy1 (x, y) _) 
-  = translate x y (color (withAlpha (health/initialHealth) (orange)) (rectangleSolid unit unit))
-drawEnemy (Enemy health _ Enemy2 (x, y) _) 
-  = translate x y (color (withAlpha (health/initialHealth) (dark orange)) (rectangleSolid unit unit))
+drawEnemy (Enemy health _ Enemy1 (x, y) _)
+  = translate x y (color (withAlpha
+    (health/initialHealth) orange) (rectangleSolid unit unit))
+drawEnemy (Enemy health _ Enemy2 (x, y) _)
+  = translate x y (color
+    (withAlpha (health/initialHealth) (dark orange))
+      (rectangleSolid unit unit))
 
 drawBullets :: [Bullet] -> Picture
 drawBullets = pictures . map drawBullet
 
 drawBullet :: Bullet -> Picture
-drawBullet (Bullet (x, y) _ _) = translate x y 
+drawBullet (Bullet (x, y) _ _) = translate x y
   (color (dark cyan) (rectangleSolid (0.1*unit) (0.1*unit)))
 
 -- TODO fix initial position for the enemy to be the first one on the path

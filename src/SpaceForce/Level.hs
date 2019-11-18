@@ -29,68 +29,68 @@ type ReloadTime = Float
 -- TODO : add types for enemies
 
 data Bullet = Bullet 
-    {
-        bulletPosition :: Position,
-        bulletVelocity :: Velocity,
-        bulletDamage   :: Damage
-    }
+  {
+    bulletPosition :: Position,
+    bulletVelocity :: Velocity,
+    bulletDamage   :: Damage
+  }
 
 data Weapon = Weapon 
-    {
-        bullet :: Bullet,
-        reloadTime :: ReloadTime
-    }
+  {
+    bullet :: Bullet,
+    reloadTime :: ReloadTime
+  }
 
 -- newtype Path = Path [Coords] -- no need because of Graphics.Gloss.Path
 
 data Movings = Movings 
-    {
-        movingsBullets :: [Bullet],
-        movingsEnemies:: [Enemy]
-    }
- 
+  {
+    movingsBullets :: [Bullet],
+    movingsEnemies:: [Enemy]
+  }
 
 type Width = Float
 type Height = Float
 type BaseHealth = Float
 data Base = Base 
-    {
-         baseHealth :: Float,
-         basePosition :: Position,
-         baseWidth :: Float,
-         baseHeight :: Float
-    }
+  {
+    baseHealth :: Float,
+    basePosition :: Position,
+    baseWidth :: Float,
+    baseHeight :: Float
+  }
 
 
 data EnemyType = Enemy1 | Enemy2
-data Enemy = Enemy {
-        enemyHealth :: Health,
-        enemyPath :: Path,
-        enemyType :: EnemyType,
-        enemyPos :: Position,
-        enemySpeed :: Speed
-    }
+data Enemy = Enemy
+  {
+    enemyHealth :: Health,
+    enemyPath :: Path,
+    enemyType :: EnemyType,
+    enemyPos :: Position,
+    enemySpeed :: Speed
+  }
 
+-- TODO: change later (for testing it's like that)
 getEnemyDamage:: Enemy -> Float
-getEnemyDamage (Enemy _ _ Enemy1 _ _)= 2000 -- TODO change later (for testing it's like that)
+getEnemyDamage (Enemy _ _ Enemy1 _ _)= 2000
 getEnemyDamage (Enemy _ _ Enemy2 _ _) = 200
 
 calculateEnemiesDamage :: [Enemy] -> Float
-calculateEnemiesDamage [] = 0
-calculateEnemiesDamage (x:xs) = getEnemyDamage x + calculateEnemiesDamage xs
+calculateEnemiesDamage = foldr ((+) . getEnemyDamage) 0
 
 hitEnemy :: [Bullet] -> Enemy -> Enemy
 hitEnemy bullets enemy = enemy { enemyHealth = newHealth }
-    where
-        (x, y) = enemyPos enemy
-        newHealth = enemyHealth enemy - hittedHealth
-        hittedHealth = sum (map hitDamage bullets)
-        hitDamage curBullet 
-            = if abs (x - bulletX) <= unit/2 && abs (y - bulletY) <= unit/2
-            then bulletDamage curBullet
-            else 0
-            where
-                (bulletX, bulletY) = bulletPosition curBullet
+  where
+    (x, y) = enemyPos enemy
+    newHealth = enemyHealth enemy - hittedHealth
+    hittedHealth = sum (map hitDamage bullets)
+    hitDamage curBullet 
+      = if abs (x - bulletX) <= unit/2 && abs (y - bulletY) <= unit/2
+      then bulletDamage curBullet
+      else 0
+      where
+        (bulletX, bulletY) = bulletPosition curBullet
 
 hitEnemies :: [Bullet] -> [Enemy] -> [Enemy]
 hitEnemies bullets = map (hitEnemy bullets)
