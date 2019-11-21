@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE DataKinds #-}
 module SpaceForce.Units where
 
 unit :: Float
@@ -7,7 +8,17 @@ unit = 30.0
 unitScaled :: Float -> Float
 unitScaled = (* unit)
 
-data Point a=
+{-
+-- Type level point differentiation
+data PointType = Local | Global
+data Point (f :: PointType)
+  = Point {
+    getX :: Double,
+    getY :: Double
+  }
+-}
+
+data Point a =
   Point {
     getX :: a,
     getY :: a
