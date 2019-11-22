@@ -2,12 +2,7 @@
 {-# LANGUAGE DataKinds #-}
 module SpaceForce.Units where
 
-unit :: Float
-unit = 30.0
-
-unitScaled :: Float -> Float
-unitScaled = (* unit)
-
+-- TODO: maybe refactor to whole 'Physics' module
 {-
 -- Type level point differentiation
 data PointType = Local | Global

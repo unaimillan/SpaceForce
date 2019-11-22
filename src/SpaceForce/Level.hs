@@ -1,99 +1,25 @@
-{-#  LANGUAGE DuplicateRecordFields #-}
 module SpaceForce.Level where
 
-import SpaceForce.Map (SpaceMap, ICoords, unit)
-import Graphics.Gloss (Path)
+import Graphics.Gloss
+import SpaceForce.Types
+import SpaceForce.Render (drawMap)
 
-type CurrentTime = Float
-type StartT = Float
-
-type Health = Float
-type Damage = Float
--- TODO: Refactor all types to Types.hs module
-type Coords = (Float,Float)
-type Position = Coords
-type Velocity = Coords
-type Speed = Float
-
-type LastShot = Float -- GameTime when the last shot happened
-type ReloadTime = Float
-
--- | Level type should have [Wave] and SpaceMap
--- data Level = Level SpaceMap
--- TODO: Add 'base' initial health to the level
-
--- | Wave is a list of enemies
--- TODO: Introduce the order of enemy bunches over time
--- data Wave = Wave StartT Delta [Enemy]
-
--- TODO : add types for enemies
-
-data Bullet = Bullet 
-  {
-    bulletPosition :: Position,
-    bulletVelocity :: Velocity,
-    bulletDamage   :: Damage
-  }
-
-data Weapon = Weapon 
-  {
-    bullet :: Bullet,
-    reloadTime :: ReloadTime
-  }
-
--- newtype Path = Path [Coords] -- no need because of Graphics.Gloss.Path
-
-data Movings = Movings 
-  {
-    movingsBullets :: [Bullet],
-    movingsEnemies:: [Enemy]
-  }
-
-type Width = Float
-type Height = Float
-type BaseHealth = Float
-data Base = Base 
-  {
-    baseHealth :: Float,
-    basePosition :: Position,
-    baseWidth :: Float,
-    baseHeight :: Float
-  }
-
-
-data EnemyType = Enemy1 | Enemy2
-data Enemy = Enemy
-  {
-    enemyHealth :: Health,
-    enemyPath :: Path,
-    enemyType :: EnemyType,
-    enemyPos :: Position,
-    enemySpeed :: Speed
-  }
-
--- TODO: change later (for testing it's like that)
-getEnemyDamage:: Enemy -> Float
-getEnemyDamage (Enemy _ _ Enemy1 _ _)= 2000
-getEnemyDamage (Enemy _ _ Enemy2 _ _) = 200
-
-calculateEnemiesDamage :: [Enemy] -> Float
-calculateEnemiesDamage = foldr ((+) . getEnemyDamage) 0
-
-hitEnemy :: [Bullet] -> Enemy -> Enemy
-hitEnemy bullets enemy = enemy { enemyHealth = newHealth }
+-- (EventKey (MouseButton LeftButton) Down _ (xpos, ypos))
+-- state = new_state
+-- where
+--   new_state = _
+detectState :: GameState -> Maybe Bool
+detectState state
+  | currentBaseHealth <= 0 = Just False
+  | null enemies && null wave = Just True
+  | otherwise = Nothing
   where
-    (x, y) = enemyPos enemy
-    newHealth = enemyHealth enemy - hittedHealth
-    hittedHealth = sum (map hitDamage bullets)
-    hitDamage curBullet 
-      = if abs (x - bulletX) <= unit/2 && abs (y - bulletY) <= unit/2
-      then bulletDamage curBullet
-      else 0
-      where
-        (bulletX, bulletY) = bulletPosition curBullet
+    enemies = movingsEnemies (gameStateMovings state)
+    wave = gameStateWave state
+    currentBaseHealth = baseHealth (gameStateBase state)
 
-hitEnemies :: [Bullet] -> [Enemy] -> [Enemy]
-hitEnemies bullets = map (hitEnemy bullets)
+displayLevel :: LevelMap -> IO ()
+displayLevel func = display debugMode white (drawMap func)
 
-removeEnemies :: (Enemy -> Bool) -> [Enemy] -> [Enemy]
-removeEnemies = filter
+debugMode :: Display
+debugMode = InWindow "SpaceForces Game. Debug" (1280, 720) (10, 10)

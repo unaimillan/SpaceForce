@@ -1,26 +1,22 @@
 module SpaceForce.Bullet where
 
-import SpaceForce.Level (Bullet(..), reloadTime, bullet, Enemy(..))
-import SpaceForce.Tower
-import SpaceForce.Map (unit)
-
-constDamage :: Float
-constDamage = 1
+import SpaceForce.Types
+import SpaceForce.Config (unit, defaultBulletDamage)
 
 -- adds a new bullet to a list of bullets
 spawnBullet :: Float -> Tower -> [Bullet]
 spawnBullet curTime tower =
-  if curTime > lastShot tower + reloadTime (weapon tower)
+  if curTime > towerLastShot tower + weaponReloadTime (towerWeapon tower)
   then [b1,b2,b3,b4]
   else []
   where
-    pos = position tower
-    (x,y) = pos
+    pos = towerPosition tower
+    ICoords (x,y) = pos
     floatPos = (fromIntegral x, fromIntegral y)
-    b1 = Bullet floatPos (1,0)  constDamage
-    b2 = Bullet floatPos (0,1)  constDamage
-    b3 = Bullet floatPos (-1,0) constDamage
-    b4 = Bullet floatPos (0,-1) constDamage
+    b1 = Bullet floatPos (1,0)  defaultBulletDamage
+    b2 = Bullet floatPos (0,1)  defaultBulletDamage
+    b3 = Bullet floatPos (-1,0) defaultBulletDamage
+    b4 = Bullet floatPos (0,-1) defaultBulletDamage
 
 spawnBullets :: Float -> [Tower] -> [Bullet]
 spawnBullets time = concatMap (spawnBullet time)
