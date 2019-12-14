@@ -72,8 +72,8 @@ data Enemy = Enemy {
     }
 
 getEnemyDamage:: Enemy -> Float
-getEnemyDamage (Enemy _ _ Enemy1 _ _)= 2000 -- TODO change later (for testing it's like that)
-getEnemyDamage (Enemy _ _ Enemy2 _ _) = 200
+getEnemyDamage (Enemy _ _ Enemy1 _ _)= 10 -- TODO change later (for testing it's like that)
+getEnemyDamage (Enemy _ _ Enemy2 _ _) = 20
 
 calculateEnemiesDamage :: [Enemy] -> Float
 calculateEnemiesDamage [] = 0
